@@ -45,8 +45,18 @@ app.add_middleware(
 def load_image_from_upload(upload_file: UploadFile) -> Image.Image:
     """Load and convert uploaded image to PIL Image"""
     try:
+        # Read the file content
         contents = upload_file.file.read()
-        image = Image.open(io.BytesIO(contents))
+        
+        # Reset file pointer for potential reuse
+        upload_file.file.seek(0)
+        
+        # Create BytesIO object and open with PIL
+        image_bytes = io.BytesIO(contents)
+        image = Image.open(image_bytes)
+        
+        # Ensure image is loaded by calling load()
+        image.load()
         
         # Convert to RGB if needed
         if image.mode != 'RGB':
@@ -54,7 +64,9 @@ def load_image_from_upload(upload_file: UploadFile) -> Image.Image:
         
         return image
     except Exception as e:
-        logger.error(f"Error loading image: {e}")
+        logger.error(f"Error loading image from upload: {e}")
+        logger.error(f"Upload file type: {type(upload_file)}")
+        logger.error(f"Content type: {getattr(upload_file, 'content_type', 'unknown')}")
         raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}")
 
 def create_enhanced_mock_tryon(person_img: Image.Image, garment_img: Image.Image) -> Image.Image:
