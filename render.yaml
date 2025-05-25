@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: tryondiffusion-api
+    env: python
+    region: oregon
+    plan: starter
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn tryon_api:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.18
+      - key: PORT
+        fromService:
+          type: web
+          name: tryondiffusion-api
+          property: port
+    autoDeploy: false
+    disk:
+      name: tryondiffusion-disk
+      mountPath: /opt/render/project/src/models
+      sizeGB: 2 
